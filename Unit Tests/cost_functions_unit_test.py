@@ -6,7 +6,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from cost_functions import (
+from main.cost_functions import (
     l1_error_function,
     l2_error_function,
     cross_entropy_loss_error_function,
