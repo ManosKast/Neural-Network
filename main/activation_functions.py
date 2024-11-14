@@ -1,5 +1,6 @@
 import numpy as np
 
+#TODO: Add leaky RELU
 
 # Cost functions
 
@@ -56,16 +57,16 @@ def ELU_activation_derivative(x, alpha=1.0):
     return 1 if x >= 0 else alpha * np.exp(x)
 
 def SLU_activation_derivative(x, c=1.0):
-    return np.exp(-c*x) * (np.exp(c*x) + c*x + 1) / (np.exp(c*x) + 1)^2
+    return np.exp(c*x) * (np.exp(c*x) + c*x + 1) / (np.exp(c*x) + 1)**2
 
 def logistic_activation_derivative(x, c=1.0):
-    return c * np.exp(-c*x) / (1 + np.exp(-c*x))^2
+    return c * np.exp(-c*x) / (1 + np.exp(-c*x))**2
 
 def softplus_activation_derivative(x):
     return 1 / (1 + np.exp(-x))
 
 def tanh_activation_derivative(x):
-    return 1 - np.tanh(x)^2
+    return 1 - np.tanh(x)**2
 
 def arctan_activation_derivative(x):
-    return 1 / (x^2 + 1)
+    return 1 / (x**2 + 1)
