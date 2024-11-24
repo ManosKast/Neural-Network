@@ -8,11 +8,11 @@ class Layer:
                  self,
                  index: int,
                  dimension: tuple,
-                 activation_function: str
+                 activation_function: ActivationFunction
                 ):
         input_size, neuron_count = dimension
         self.index = index
-        self.activation_function, self.activation_function_gradient = get_activation_function(activation_function)
+        self.activation_function = activation_function
         self.neurons: List[Neuron] = [Neuron(index, i, input_size, neuron_count) for i in range(neuron_count)]
         self.output = None
         self.input = None
@@ -45,21 +45,19 @@ class Layer:
 
         return self.output
 
-    def final_layer_backward(self, predictions: np.ndarray, target: np.ndarray, optimisation_function):
+    def final_layer_backward(self, predictions: np.ndarray, target: np.ndarray, optimisation_function, cost_function):
         batch_size: int = predictions.shape[0]
         previous_layer_output: np.ndarray = self.input
 
         # Compute delta for the output layer
-        # TODO: Implement proper delta calculation for different loss functions
-        self.delta = predictions - target
-
+        self.delta = cost_function.gradient(target, predictions) * self.activation_function.gradient(self.z_outputs)
+        
         # Update each neuron's delta and compute gradients
         for neuron in self.neurons:
             neuron.delta = self.delta[:, neuron.index]
-            gradient = previous_layer_output.T.dot(neuron.delta) / batch_size
+            gradient, bias_gradient = previous_layer_output.T.dot(neuron.delta) / batch_size, np.mean(neuron.delta)
             gradient = np.clip(gradient, -5, 5)  # Clip gradients to prevent exploding gradients
-            optimisation_function(neuron.weights, gradient)
-            neuron.bias -= optimisation_function.learning_rate * np.mean(neuron.delta)
+            optimisation_function(neuron, (gradient, bias_gradient))
 
     def backpropagate(self, optimisation_function):
         batch_size = self.output.shape[0]
@@ -74,11 +72,10 @@ class Layer:
             weighted_deltas = np.zeros(batch_size)
             for child_idx, child_neuron in enumerate(next_layer.neurons):
                 weighted_deltas += child_neuron.weights[idx] * child_neuron.delta
-            self.delta[:, idx] = self.activation_function_gradient(self.z_outputs[:, idx]) * weighted_deltas
+            self.delta[:, idx] = self.activation_function.gradient(self.z_outputs[:, idx]) * weighted_deltas
             neuron.delta = self.delta[:, idx]
 
         # Compute gradients and update weights and biases for each neuron
         for idx, neuron in enumerate(self.neurons):
-            gradient = previous_layer_output.T.dot(neuron.delta) / batch_size
-            optimisation_function(neuron.weights, gradient)
-            neuron.bias -= optimisation_function.learning_rate * np.mean(neuron.delta)
+            gradient, bias_gradient = previous_layer_output.T.dot(neuron.delta) / batch_size, np.mean(neuron.delta)
+            optimisation_function(neuron, (gradient, bias_gradient))

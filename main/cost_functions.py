@@ -1,48 +1,127 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
-# Cost functions
-def l1_error(y, y_pred):
-    return np.sum(np.abs(y - y_pred))
+c = 1e-10
 
-def l2_error(y, y_pred):
-    return np.sum(np.power(y - y_pred, 2))
+class CostFunction(ABC):
+    @abstractmethod
+    def __call__(self, y, y_pred): ...
+    @abstractmethod
+    def gradient(self, y, y_pred): ...
+    @abstractmethod
+    def __eq__(self, value): ...
 
-def cross_entropy_loss(y, y_pred):
-    return -np.sum(y * np.log(y_pred) + (1 - y) * np.log(1 - y_pred))
+class L1Error(CostFunction):
+    def __init__(self):
+        self.name = 'l1_error'
 
-def mean_squared_error(y, y_pred):
-    return np.mean(np.power(y - y_pred, 2))
+    def __call__(self, y, y_pred):
+        return np.sum(np.abs(y - y_pred))
 
-def mean_absolute_error(y, y_pred):
-    return np.mean(np.abs(y - y_pred))
+    def gradient(self, y, y_pred):
+        return np.sum((y_pred - y) / np.abs(y - y_pred + c))
 
-def binary_crossentropy_error(y, y_pred):
-    return np.mean(-y * np.log(y_pred) - (1 - y) * np.log(1 - y_pred))
+    def __eq__(self, value):
+        return self.name == value
+    
+class L2Error(CostFunction):
+    def __init__(self):
+        self.name = 'l2_error'
 
-#TODO: Implement hinge loss error function
-def hinge_loss_error(y, y_pred):
-    pass
+    def __call__(self, y, y_pred):
+        return np.sum(np.power(y - y_pred, 2))
 
-# Gradients of cost functions
+    def gradient(self, y, y_pred):
+        return np.sum(2 * (y_pred - y))
 
-# I did the maths on my own, hopefully it's correct. :D
-def l1_error_gradient(y, y_pred):
-    return np.sum((y_pred - y) / np.abs(y - y_pred))
+    def __eq__(self, value):
+        return self.name == value
+    
+class CrossEntropyLoss(CostFunction):
+    def __init__(self, softmax=False):
+        self.name = 'cross_entropy'
+        self.softmax = softmax
 
-def l2_error_gradient(y, y_pred):
-    return np.sum(2 * (y_pred - y))
+    def __call__(self, y, y_pred):
+        return -np.mean(y * np.log(y_pred + c))
 
-def cross_entropy_loss_gradient(y, y_pred):
-    return np.sum(y / y_pred - (y - 1) / (y_pred - 1))
+    def gradient(self, y, y_pred):
+        return y_pred - y if self.softmax else np.mean(y / (y_pred + c))
 
-def mean_squared_error_gradient(y, y_pred):
-    return np.mean(2 * (y_pred - y))
+    def __eq__(self, value):
+        return self.name == value
+    
+class MeanSquaredError(CostFunction):
+    def __init__(self):
+        self.name = 'mean_squared_error'
 
-def mean_absolute_error_gradient(y, y_pred):
-    return np.mean((y_pred - y) / np.abs(y - y_pred))
+    def __call__(self, y, y_pred):
+        return np.mean(np.power(y - y_pred, 2))
 
-def binary_crossentropy_gradient(y, y_pred):
-    return np.mean(y / y_pred - (y - 1) / (y_pred - 1))
+    def gradient(self, y, y_pred):
+        return np.mean(2 * (y_pred - y))
 
-def hinge_loss_gradient(y, y_pred):
-    pass    
+    def __eq__(self, value):
+        return self.name == value
+    
+class MeanAbsoluteError(CostFunction):
+    def __init__(self):
+        self.name = 'mean_absolute_error'
+
+    def __call__(self, y, y_pred):
+        return np.mean(np.abs(y - y_pred))
+
+    def gradient(self, y, y_pred):
+        return np.mean((y_pred - y) / np.abs(y - y_pred + c))
+
+    def __eq__(self, value):
+        return self.name == value
+    
+# TODO: Check if it classifies 2 classes
+class BinaryCrossEntropy(CostFunction):
+    def __init__(self):
+        self.name = 'binary_cross_entropy'
+
+    def __call__(self, y, y_pred):
+        return np.mean(-y * np.log(y_pred + c) - (1 - y) * np.log(1 - y_pred + c))
+
+    def gradient(self, y, y_pred):
+        y_pred = np.clip(y_pred, c, 1 - c)
+        gradient = -(y / y_pred) + (1 - y) / (1 - y_pred + c)
+        return np.mean(gradient)
+
+    def __eq__(self, value):
+        return self.name == value
+    
+class HingeLoss(CostFunction):
+    def __init__(self):
+        self.name = 'hinge_loss'
+
+    def __call__(self, y, y_pred):
+        pass
+
+    def gradient(self, y, y_pred):
+        pass
+
+    def __eq__(self, value):
+        return self.name == value
+    
+
+def get_cost_function(cost_function: str):
+    cost_function = cost_function.lower()
+    # TODO: Add hinge loss error function
+    match cost_function:
+        case 'l1_error':
+            return L1Error()
+        case 'l2_error':
+            return L2Error()        
+        case 'cross_entropy':
+            return CrossEntropyLoss()
+        case 'mean_squared_error':
+            return MeanSquaredError()
+        case 'mean_absolute_error':
+            return MeanAbsoluteError()
+        case 'binary_cross_entropy':
+            return BinaryCrossEntropy()
+        case _:
+            raise ValueError(f'Cost function {cost_function} not recognised')

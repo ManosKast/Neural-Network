@@ -1,5 +1,6 @@
 import numpy as np
 from typing import List
+from activation_functions import *
 
 
 def kaiming_weight_initialisation(count):
@@ -35,11 +36,13 @@ class Neuron:
     def compute_final_delta(self, predictions, target):
         self.delta = predictions[:, self.index] - target[:, self.index]
 
-    def compute_delta(self, activation_function_gradient):
+    def compute_delta(self, activation_function):
+        if not isinstance(activation_function, Arctan):
+            assert("Activation function must be an instance of ActivationFunction")
         weighted_deltas = np.zeros_like(self.z_output)
         for child in self.children:
             weighted_deltas += child.weights[self.index] * child.delta
-        self.delta = activation_function_gradient(self.z_output) * weighted_deltas
+        self.delta = activation_function.gradient(self.z_output) * weighted_deltas
 
     def set_parents(self, parents: list):
         if isinstance(parents, list) and all(isinstance(parent, Neuron) for parent in parents):
