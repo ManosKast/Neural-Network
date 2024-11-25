@@ -7,7 +7,7 @@ class OptimisationFunction(ABC):
     def __call__(self, weights: np.ndarray, gradient: np.ndarray): ...
 
 class GradientDescent(OptimisationFunction):
-    def __init__(self, learning_rate=1.0):
+    def __init__(self, learning_rate=0.01):
         self.learning_rate = learning_rate
         self.initial_learning_rate = learning_rate
         self.iteration = 0
@@ -43,3 +43,11 @@ class Adam(OptimisationFunction):
         m_hat = self.m / (1 - self.beta1 ** self.it)
         v_hat = self.v / (1 - self.beta2 ** self.it)
         weights -= self.learning_rate * m_hat / (np.sqrt(v_hat) + self.epsilon)
+
+def get_optimisation_function(name: str) -> OptimisationFunction:
+    if name == 'adam':
+        return Adam()
+    elif name == 'gradient_descent':
+        return GradientDescent()
+    else:
+        raise ValueError("Invalid optimisation function name")

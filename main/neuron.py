@@ -15,7 +15,9 @@ def xavier_weight_initialisation(size, fan_in, fan_out):
 
 class Neuron:
     def __init__(self, layer_count, index, input_size, output_size):
-        self.weights = xavier_weight_initialisation(input_size, input_size, output_size)
+        # if activation_function == 'relu_activation':
+        # self.weights = xavier_weight_initialisation(input_size, input_size, output_size)
+        self.weights = kaiming_weight_initialisation(input_size)
         self.bias = 0.0
         self.output = None
         self.z_output = None
