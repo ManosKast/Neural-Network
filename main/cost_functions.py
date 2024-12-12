@@ -105,23 +105,3 @@ class HingeLoss(CostFunction):
 
     def __eq__(self, value):
         return self.name == value
-    
-
-def get_cost_function(cost_function: str):
-    cost_function = cost_function.lower()
-    # TODO: Add hinge loss error function
-    match cost_function:
-        case 'l1_error':
-            return L1Error()
-        case 'l2_error':
-            return L2Error()        
-        case 'cross_entropy':
-            return CrossEntropyLoss()
-        case 'mean_squared_error':
-            return MeanSquaredError()
-        case 'mean_absolute_error':
-            return MeanAbsoluteError()
-        case 'binary_cross_entropy':
-            return BinaryCrossEntropy()
-        case _:
-            raise ValueError(f'Cost function {cost_function} not recognised')

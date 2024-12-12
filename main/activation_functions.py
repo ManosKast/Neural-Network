@@ -185,31 +185,3 @@ class Softmax(ActivationFunction):
     def gradient(self, x):
         super().gradient(x)
         return 1 if self.cross_entropy else x * (1 - x)
-
-
-def get_activation_function(activation_function: str, hyperparameter: float = 0):
-    match activation_function:
-        case 'linear':
-            return Linear()
-        case 'binary_step':
-            return BinaryStep()
-        case 'ReLU':
-            return ReLU()
-        case 'PReLU':
-            return PReLU() if hyperparameter == 0 else PReLU(hyperparameter)
-        case 'ELU':
-            return ELU() if hyperparameter == 0 else ELU(hyperparameter)
-        case 'SLU':
-            return SLU() if hyperparameter == 0 else SLU(hyperparameter)
-        case 'softplus':
-            return Softplus()
-        case 'logistic':
-            return Logistic() if hyperparameter == 0 else Logistic(hyperparameter)
-        case 'tanh':
-            return Tanh()
-        case 'arctan':
-            return Arctan()
-        case 'softmax':
-            return Softmax()
-        case _:
-            raise ValueError(f'Activation function {activation_function} not recognised')

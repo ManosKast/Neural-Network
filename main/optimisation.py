@@ -64,11 +64,3 @@ class Adam(OptimisationFunction):
     def map_neurons(self, neurons: list[Neuron]):
         for neuron in neurons:
             self.neurons[neuron] = {'m_1': 0, 'v_1': 0, 'm_2': 0, 'v_2': 0, 'it': 0}
-
-def get_optimisation_function(name: str) -> OptimisationFunction:
-    if name == 'adam':
-        return Adam()
-    elif name == 'gradient_descent':
-        return GradientDescent()
-    else:
-        raise ValueError("Invalid optimisation function name")
