@@ -4,26 +4,15 @@ from layer import Layer
 from cost_functions import *
 from activation_functions import *
 from optimisation import *
+from util import *
+
 from typing import List
 
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-    
-# Converts an array of class labels into one-hot-encoded vectors.
-def one_hot_encode(labels) -> np.ndarray:
-    assert labels is not None, "Labels cannot be None"
-    assert len(labels) > 0, "Labels cannot be empty"
-    if not isinstance(labels, np.ndarray):
-        labels = np.array(labels)
 
-    # Create a zero matrix of shape (num_samples, num_classes)
-    # Set the index corresponding to the label to 1 for each sample
-    num_classes = len(np.unique(labels))
-    one_hot = np.zeros((len(labels), num_classes))
-    one_hot[np.arange(len(labels)), labels] = 1
-    return one_hot
 
 
 
@@ -33,6 +22,7 @@ class NeuralNetwork:
         if optimisation_function is not None and not isinstance(optimisation_function, (str, OptimisationFunction)):
             assert False, "Optimisation function must be a string or an instance of OptimisationFunction"
         self.cost_function = get_cost_function(cost_function) if isinstance(cost_function, str) else cost_function
+
         # If optimisation_function is None, use Gradient Descent as the default optimisation function
         # If optimisation_function is a string, get the corresponding optimisation function using get_optimisation_function
         # If optimisation_function is an instance of OptimisationFunction, assign it directly
@@ -106,6 +96,16 @@ class NeuralNetwork:
         for layer in reversed(self.layers[:-1]):
             layer.backpropagate(self.optimisation_function)
 
+    def predict(self, input: np.ndarray):
+        assert input is not None, "Input cannot be None"
+        assert len(input) > 0, "Input cannot be empty"
+        assert isinstance(input, np.ndarray), "Input must be a numpy array"
+        layer_input = input
+        for layer in self.layers:
+            layer_input = layer.predict(layer_input)
+        return np.argmax(layer_input, axis=1)
+
+
 if __name__ == '__main__':
     # Load the Iris dataset
     iris = load_iris()
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     X_test = np.array(X_test, dtype=np.float32)
     y_test = np.array(y_test, dtype=np.int64)
 
-    network = NeuralNetwork()
+    network = NeuralNetwork(optimisation_function='adam')
     network.add_layer((4, 10), 'ReLU')
     network.add_layer((10, 3), 'softmax')
 
@@ -152,6 +152,7 @@ if __name__ == '__main__':
         print(f"Epoch {epoch + 1}, Loss: {avg_loss:.4f}, Accuracy: {avg_accuracy:.4f}")
 
     # Evaluate on test data
-    loss, accuracy = network.model(X_test, y_test)
+    predictions = network.predict(X_test)
+    accuracy = np.mean(predictions == y_test)
     print(f"Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}")
     

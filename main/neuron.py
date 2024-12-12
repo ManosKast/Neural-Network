@@ -14,10 +14,14 @@ def xavier_weight_initialisation(size, fan_in, fan_out):
 
 
 class Neuron:
-    def __init__(self, layer_count, index, input_size, output_size):
-        # if activation_function == 'relu_activation':
-        # self.weights = xavier_weight_initialisation(input_size, input_size, output_size)
-        self.weights = kaiming_weight_initialisation(input_size)
+    def __init__(self, layer_count, index, input_size, output_size, activation_function):
+        assert isinstance(layer_count, int), "Layer count must be an integer"
+        assert isinstance(index, int), "Index must be an integer"
+        assert isinstance(input_size, int), "Input size must be an integer"
+        assert isinstance(output_size, int), "Output size must be an integer"
+        assert isinstance(activation_function, ActivationFunction), "Activation function must be an instance of ActivationFunction"
+        self.weights = kaiming_weight_initialisation(input_size) if activation_function == 'relu_activation' \
+                                                                 else xavier_weight_initialisation(input_size, input_size, output_size)
         self.bias = 0.0
         self._output = None
         self.z_output = None
@@ -52,7 +56,7 @@ class Neuron:
     def forward(self, input: np.ndarray):
         self.z_output = self.compute_z(input)
         return self.z_output  # Return z_output without activation
-
+    
     def compute_final_delta(self, predictions, target):
         self._delta = predictions[:, self.index] - target[:, self.index]
 

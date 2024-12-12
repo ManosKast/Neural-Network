@@ -22,7 +22,7 @@ class Layer:
         input_size, neuron_count = dimension
         self.index: int = index
         self.activation_function: ActivationFunction = activation_function
-        self.neurons: List[Neuron] = [Neuron(index, i, input_size, neuron_count) for i in range(neuron_count)]
+        self.neurons: List[Neuron] = [Neuron(index, i, input_size, neuron_count, activation_function) for i in range(neuron_count)]
         self.output = None
         self.input = None
         self.z_outputs = None
@@ -53,7 +53,6 @@ class Layer:
             neuron_z_output = neuron.forward(input)
             z_outputs.append(neuron_z_output)
         self.z_outputs = np.column_stack(z_outputs)  # Shape: (batch_size, num_neurons)
-
         self.output = self.activation_function(self.z_outputs)
 
         # Update each neuron's output
@@ -61,7 +60,7 @@ class Layer:
             neuron.output = self.output[:, neuron.index]
 
         return self.output
-
+    
     def final_layer_backward(self, 
                              predictions: np.ndarray, 
                              target: np.ndarray, 
@@ -101,3 +100,13 @@ class Layer:
             # Compute gradients and update weights and biases for each neuron
             gradient, bias_gradient = previous_layer_output.T.dot(neuron.delta) / batch_size, np.mean(neuron.delta)
             optimisation_function(neuron, (gradient, bias_gradient))
+
+    def predict(self, input: np.ndarray):
+        assert isinstance(input, np.ndarray), "Input must be a numpy array"
+        assert len(input) > 0, "Input cannot be empty"
+        z_outputs = []
+        for neuron in self.neurons:
+            neuron_z_output = neuron.compute_z(input)
+            z_outputs.append(neuron_z_output)
+        z_outputs = np.column_stack(z_outputs)
+        return self.activation_function(z_outputs)
